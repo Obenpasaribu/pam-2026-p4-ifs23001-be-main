@@ -1,0 +1,129 @@
+## Global Variabel
+@BaseUrl = https://pam-2026-p4-ifs23001-be.delcom.org:8080
+#@BaseUrl = http://127.0.0.1:8000
+
+## Profile
+## ===========================================
+
+### Mengambil semua data komponen
+# @name GetProfile
+GET {{BaseUrl}}/profile
+Content-Type: application/json
+
+### Mengambil photo profil
+# @name GetProfilePhoto
+GET {{BaseUrl}}/profile/photo
+Content-Type: application/json
+
+
+## Plants
+## ===========================================
+
+### Mengambil semua data komponen
+# @name getAllPlantspc
+GET {{BaseUrl}}/plants?search=
+Content-Type: application/json
+
+#> {%
+#    client.global.set("plantId", response.body.data.plants[0].id);
+#    console.log(client.global.get("plantId"))
+#%}
+
+### Menambahkan data komponen baru
+# @name PostPlants
+POST {{BaseUrl}}/plants
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="nama"
+
+Kangkung
+--WebAppBoundary
+Content-Disposition: form-data; name="deskripsi"
+
+Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+--WebAppBoundary
+Content-Disposition: form-data; name="manfaat"
+
+Membantu detoksifikasi dan menjaga kesehatan mata
+--WebAppBoundary
+Content-Disposition: form-data; name="efekSamping"
+
+Dapat menyebabkan kembung
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Type: image/png
+
+< ./example.png
+--WebAppBoundary--
+
+> {%
+    client.global.set("plantId", response.body.data.plantId);
+    console.log(client.global.get("plantId"))
+%}
+
+### Mengambil data komponen berdasarkan id-nya
+# @name getPlantByIdpc
+GET {{BaseUrl}}/plants/{{plantId}}
+Content-Type: application/json
+
+### Melihat gambar komponen
+# @name getPlantImagepcById
+GET {{BaseUrl}}/plants/{{plantId}}/image
+Content-Type: application/json
+
+### Mengubah hanya data plant berdasarkan id-nya
+# @name PutPlantOnlyData
+PUT {{BaseUrl}}/plants/{{plantId}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="nama"
+
+Brokoli Update
+--WebAppBoundary
+Content-Disposition: form-data; name="deskripsi"
+
+Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+--WebAppBoundary
+Content-Disposition: form-data; name="manfaat"
+
+Membantu detoksifikasi dan menjaga kesehatan mata
+--WebAppBoundary
+Content-Disposition: form-data; name="efekSamping"
+
+Dapat menyebabkan kembung
+--WebAppBoundary--
+
+### Mengubah gambar dan data plant berdasarkan id-nya
+# @name PutPlant
+PUT {{BaseUrl}}/plants/{{plantId}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="nama"
+
+Brokoli
+--WebAppBoundary
+Content-Disposition: form-data; name="deskripsi"
+
+Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+--WebAppBoundary
+Content-Disposition: form-data; name="manfaat"
+
+Membantu detoksifikasi dan menjaga kesehatan mata
+--WebAppBoundary
+Content-Disposition: form-data; name="efekSamping"
+
+Dapat menyebabkan kembung
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Type: image/png
+
+< ./example.png
+--WebAppBoundary--
+
+### Menghapus data plant berdasarkan id-nya
+# @name deletePlantpc
+DELETE {{BaseUrl}}/plants/{{plantId}}
+Content-Type: application/json
