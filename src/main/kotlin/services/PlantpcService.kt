@@ -9,18 +9,18 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import org.delcom.data.AppException
 import org.delcom.data.DataResponse
-import org.delcom.data.PlantRequest
+import org.delcom.data.PlantpcRequest
 import org.delcom.helpers.ValidatorHelper
-import org.delcom.repositories.IPlantRepository
+import org.delcom.repositories.IPlantpcRepository
 import java.io.File
 import java.util.*
 
-class PlantService(private val plantRepository: IPlantRepository) {
+class PlantpcService(private val plantpcRepository: IPlantpcRepository) {
     // Mengambil semua data komponen
-    suspend fun getAllPlants(call: ApplicationCall) {
+    suspend fun getAllPlantspc(call: ApplicationCall) {
         val search = call.request.queryParameters["search"] ?: ""
 
-        val plants = plantRepository.getPlants(search)
+        val plants = plantpcRepository.getPlantspc(search)
 
         val response = DataResponse(
             "success",
@@ -31,11 +31,11 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Mengambil data komponen berdasarkan id
-    suspend fun getPlantById(call: ApplicationCall) {
+    suspend fun getPlantByIdpc(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: throw AppException(400, "ID komponen tidak boleh kosong!")
 
-        val plant = plantRepository.getPlantById(id) ?: throw AppException(404, "Data komponen tidak tersedia!")
+        val plant = plantpcRepository.getPlantByIdpc(id) ?: throw AppException(404, "Data komponen tidak tersedia!")
 
         val response = DataResponse(
             "success",
@@ -46,9 +46,9 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Ambil data request
-    private suspend fun getPlantRequest(call: ApplicationCall): PlantRequest {
+    private suspend fun getPlantRequestpc(call: ApplicationCall): PlantpcRequest {
         // Buat object penampung
-        val plantReq = PlantRequest()
+        val plantReq = PlantpcRequest()
 
         val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 5)
         multipartData.forEachPart { part ->
@@ -58,8 +58,8 @@ class PlantService(private val plantRepository: IPlantRepository) {
                     when (part.name) {
                         "nama" -> plantReq.nama = part.value.trim()
                         "deskripsi" -> plantReq.deskripsi = part.value
-                        "harga" -> plantReq.manfaat = part.value
-                        "pengaruh" -> plantReq.efekSamping = part.value
+                        "harga" -> plantReq.harga = part.value
+                        "pengaruh" -> plantReq.pengaruh = part.value
                     }
                 }
 
@@ -90,7 +90,7 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Validasi request data dari pengguna
-    private fun validatePlantRequest(plantReq: PlantRequest){
+    private fun validatePlantRequestpc(plantReq: PlantpcRequest){
         val validatorHelper = ValidatorHelper(plantReq.toMap())
         validatorHelper.required("nama", "Nama tidak boleh kosong")
         validatorHelper.required("deskripsi", "Deskripsi tidak boleh kosong")
@@ -107,25 +107,25 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Menambahkan data komponen
-    suspend fun createPlant(call: ApplicationCall) {
+    suspend fun createPlantpc(call: ApplicationCall) {
         // Ambil data request
-        val plantReq = getPlantRequest(call)
+        val plantpcReq = getPlantRequestpc(call)
 
         // Validasi request
-        validatePlantRequest(plantReq)
+        validatePlantRequestpc(plantpcReq)
 
         // periksa plant dengan nama yang sama
-        val existPlant = plantRepository.getPlantByName(plantReq.nama)
+        val existPlant = plantpcRepository.getPlantByNamepc(plantpcReq.nama)
         if(existPlant != null){
-            val tmpFile = File(plantReq.pathGambar)
+            val tmpFile = File(plantpcReq.pathGambar)
             if(tmpFile.exists()){
                 tmpFile.delete()
             }
             throw AppException(409, "komponen dengan nama ini sudah terdaftar!")
         }
 
-        val plantId = plantRepository.addPlant(
-            plantReq.toEntity()
+        val plantId = plantpcRepository.addPlantpc(
+            plantpcReq.toEntitypc()
         )
 
         val response = DataResponse(
@@ -137,27 +137,27 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Mengubah data komponen
-    suspend fun updatePlant(call: ApplicationCall) {
+    suspend fun updatePlantpc(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: throw AppException(400, "ID komponen tidak boleh kosong!")
 
-        val oldPlant = plantRepository.getPlantById(id) ?: throw AppException(404, "Data komponen tidak tersedia!")
+        val oldPlant = plantpcRepository.getPlantByIdpc(id) ?: throw AppException(404, "Data komponen tidak tersedia!")
 
         // Ambil data request
-        val plantReq = getPlantRequest(call)
+        val plantpcReq = getPlantRequestpc(call)
 
-        if(plantReq.pathGambar.isEmpty()){
-            plantReq.pathGambar = oldPlant.pathGambar
+        if(plantpcReq.pathGambar.isEmpty()){
+            plantpcReq.pathGambar = oldPlant.pathGambar
         }
 
         // Validasi request
-        validatePlantRequest(plantReq)
+        validatePlantRequestpc(plantpcReq)
 
         // periksa plant dengan nama yang sama jika nama diubah
-        if(plantReq.nama != oldPlant.nama){
-            val existPlant = plantRepository.getPlantByName(plantReq.nama)
+        if(plantpcReq.nama != oldPlant.nama){
+            val existPlant = plantpcRepository.getPlantByNamepc(plantpcReq.nama)
             if(existPlant != null){
-                val tmpFile = File(plantReq.pathGambar)
+                val tmpFile = File(plantpcReq.pathGambar)
                 if(tmpFile.exists()){
                     tmpFile.delete()
                 }
@@ -166,15 +166,15 @@ class PlantService(private val plantRepository: IPlantRepository) {
         }
 
         // Hapus gambar lama jika mengupload file baru
-        if(plantReq.pathGambar != oldPlant.pathGambar){
+        if(plantpcReq.pathGambar != oldPlant.pathGambar){
             val oldFile = File(oldPlant.pathGambar)
             if(oldFile.exists()){
                 oldFile.delete()
             }
         }
 
-        val isUpdated = plantRepository.updatePlant(
-            id, plantReq.toEntity()
+        val isUpdated = plantpcRepository.updatePlantpc(
+            id, plantpcReq.toEntitypc()
         )
         if (!isUpdated) {
             throw AppException(400, "Gagal memperbarui data komponen!")
@@ -189,15 +189,15 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Menghapus data komponen
-    suspend fun deletePlant(call: ApplicationCall) {
+    suspend fun deletePlantpc(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: throw AppException(400, "ID komponen tidak boleh kosong!")
 
-        val oldPlant = plantRepository.getPlantById(id) ?: throw AppException(404, "Data komponen tidak tersedia!")
+        val oldPlant = plantpcRepository.getPlantByIdpc(id) ?: throw AppException(404, "Data komponen tidak tersedia!")
 
         val oldFile = File(oldPlant.pathGambar)
 
-        val isDeleted = plantRepository.removePlant(id)
+        val isDeleted = plantpcRepository.removePlantpc(id)
         if (!isDeleted) {
             throw AppException(400, "Gagal menghapus data komponen!")
         }
@@ -216,11 +216,11 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Mengambil gambar komponen
-    suspend fun getPlantImage(call: ApplicationCall) {
+    suspend fun getPlantImagepc(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: return call.respond(HttpStatusCode.BadRequest)
 
-        val plant = plantRepository.getPlantById(id)
+        val plant = plantpcRepository.getPlantByIdpc(id)
             ?: return call.respond(HttpStatusCode.NotFound)
 
         val file = File(plant.pathGambar)

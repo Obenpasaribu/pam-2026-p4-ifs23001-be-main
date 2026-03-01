@@ -1,32 +1,32 @@
 package org.delcom.data
 
 import kotlinx.serialization.Serializable
-import org.delcom.entities.Plant
+import org.delcom.entities.Plantpc
 
 @Serializable
-data class PlantRequest(
+data class PlantpcRequest(
     var nama: String = "",
     var deskripsi: String = "",
-    var manfaat: String = "",
-    var efekSamping: String = "",
+    var harga: String = "",
+    var pengaruh: String = "",
     var pathGambar: String = "",
 ){
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "nama" to nama,
             "deskripsi" to deskripsi,
-            "manfaat" to manfaat,
-            "efek samping" to efekSamping,
+            "harga" to harga,
+            "pengaruh" to pengaruh,
             "pathGambar" to pathGambar
         )
     }
 
-    fun toEntity(): Plant {
-        return Plant(
+    fun toEntitypc(): Plantpc {
+        return Plantpc(
             nama = nama,
             deskripsi = deskripsi,
-            manfaat = manfaat,
-            efekSamping = efekSamping,
+            harga = harga,
+            pengaruh = pengaruh,
             pathGambar =  pathGambar,
         )
     }

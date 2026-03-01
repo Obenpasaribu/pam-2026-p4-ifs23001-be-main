@@ -9,11 +9,13 @@ import org.delcom.data.AppException
 import org.delcom.data.ErrorResponse
 import org.delcom.helpers.parseMessageToMap
 import org.delcom.services.PlantService
+import org.delcom.services.PlantpcService
 import org.delcom.services.ProfileService
 import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
     val plantService: PlantService by inject()
+    val plantpcService: PlantpcService by inject()
     val profileService: ProfileService by inject()
 
     install(StatusPages) {
@@ -52,23 +54,46 @@ fun Application.configureRouting() {
         // Route Plants
         route("/plants") {
             get {
-                plantService.getAllPlantspc(call)
+                plantService.getAllPlants(call)
             }
             post {
-                plantService.createPlantpc(call)
+                plantService.createPlant(call)
             }
             get("/{id}") {
-                plantService.getPlantByIdpc(call)
+                plantService.getPlantById(call)
             }
             put("/{id}") {
-                plantService.updatePlantpc(call)
+                plantService.updatePlant(call)
             }
+
             delete("/{id}") {
-                plantService.deletePlantpc(call)
+                plantService.deletePlant(call)
             }
 
             get("/{id}/image") {
-                plantService.getPlantImagepc(call)
+                plantService.getPlantImage(call)
+            }
+        }
+
+        route("/plantspc") {
+            get {
+                plantpcService.getAllPlantspc(call)
+            }
+            post {
+                plantpcService.createPlantpc(call)
+            }
+            get("/{id}") {
+                plantpcService.getPlantByIdpc(call)
+            }
+            put("/{id}") {
+                plantpcService.updatePlantpc(call)
+            }
+            delete("/{id}") {
+                plantpcService.deletePlantpc(call)
+            }
+
+            get("/{id}/image") {
+                plantpcService.getPlantImagepc(call)
             }
         }
 
@@ -82,4 +107,5 @@ fun Application.configureRouting() {
             }
         }
     }
+
 }

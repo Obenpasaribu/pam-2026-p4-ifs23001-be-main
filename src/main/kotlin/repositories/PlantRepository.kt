@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.lowerCase
 import java.util.UUID
 
 class PlantRepository : IPlantRepository {
-    override suspend fun getPlantspc(search: String): List<Plant> = suspendTransaction {
+    override suspend fun getPlants(search: String): List<Plant> = suspendTransaction {
         if (search.isBlank()) {
             PlantDAO.all()
                 .orderBy(PlantTable.createdAt to SortOrder.DESC)
@@ -31,7 +31,7 @@ class PlantRepository : IPlantRepository {
         }
     }
 
-    override suspend fun getPlantByIdpc(id: String): Plant? = suspendTransaction {
+    override suspend fun getPlantById(id: String): Plant? = suspendTransaction {
         PlantDAO
             .find { (PlantTable.id eq UUID.fromString(id)) }
             .limit(1)
@@ -39,7 +39,7 @@ class PlantRepository : IPlantRepository {
             .firstOrNull()
     }
 
-    override suspend fun getPlantByNamepc(name: String): Plant? = suspendTransaction {
+    override suspend fun getPlantByName(name: String): Plant? = suspendTransaction {
         PlantDAO
             .find { (PlantTable.nama eq name) }
             .limit(1)
@@ -47,7 +47,7 @@ class PlantRepository : IPlantRepository {
             .firstOrNull()
     }
 
-    override suspend fun addPlantpc(plant: Plant): String = suspendTransaction {
+    override suspend fun addPlant(plant: Plant): String = suspendTransaction {
         val plantDAO = PlantDAO.new {
             nama = plant.nama
             pathGambar = plant.pathGambar
@@ -61,7 +61,7 @@ class PlantRepository : IPlantRepository {
         plantDAO.id.value.toString()
     }
 
-    override suspend fun updatePlantpc(id: String, newPlant: Plant): Boolean = suspendTransaction {
+    override suspend fun updatePlant(id: String, newPlant: Plant): Boolean = suspendTransaction {
         val plantDAO = PlantDAO
             .find { PlantTable.id eq UUID.fromString(id) }
             .limit(1)
@@ -80,7 +80,7 @@ class PlantRepository : IPlantRepository {
         }
     }
 
-    override suspend fun removePlantpc(id: String): Boolean = suspendTransaction {
+    override suspend fun removePlant(id: String): Boolean = suspendTransaction {
         val rowsDeleted = PlantTable.deleteWhere {
             PlantTable.id eq UUID.fromString(id)
         }
