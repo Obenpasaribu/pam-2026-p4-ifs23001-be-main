@@ -1,5 +1,5 @@
 ## Global Variabel
-@BaseUrl = https://pam-2026-p4-ifs23001-be.delcom.org:8080
+@BaseUrl = https://pam-2026-p4-ifs23001-be.ifs23001.fun:8080/
 #@BaseUrl = http://127.0.0.1:8000
 
 ## Profile
@@ -86,11 +86,11 @@ Content-Disposition: form-data; name="deskripsi"
 
 Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
 --WebAppBoundary
-Content-Disposition: form-data; name="manfaat"
+Content-Disposition: form-data; name="harga"
 
 Membantu detoksifikasi dan menjaga kesehatan mata
 --WebAppBoundary
-Content-Disposition: form-data; name="efekSamping"
+Content-Disposition: form-data; name="pengaruh"
 
 Dapat menyebabkan kembung
 --WebAppBoundary--
