@@ -5,125 +5,104 @@
 ## Profile
 ## ===========================================
 
-### Mengambil semua data komponen
-# @name GetProfile
-GET {{BaseUrl}}/profile
-Content-Type: application/json
-
-### Mengambil photo profil
-# @name GetProfilePhoto
-GET {{BaseUrl}}/profile/photo
-Content-Type: application/json
-
-
-## Plants
+## Plantspc (Komponen PC)
 ## ===========================================
 
-### Mengambil semua data komponen
+### Mengambil semua data komponen PC
 # @name getAllPlantspc
-GET {{BaseUrl}}/plants?search=
+GET {{BaseUrl}}/plantspc?search=
 Content-Type: application/json
 
-#> {%
-#    client.global.set("plantId", response.body.data.plants[0].id);
-#    console.log(client.global.get("plantId"))
-#%}
-
-### Menambahkan data komponen baru
-# @name PostPlants
-POST {{BaseUrl}}/plants
+### Menambahkan data komponen PC baru
+# @name PostPlantspc
+POST {{BaseUrl}}/plantspc
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
 Content-Disposition: form-data; name="nama"
 
-Kangkung
+NVIDIA RTX 4099
 --WebAppBoundary
 Content-Disposition: form-data; name="deskripsi"
 
-Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+Kartu grafis kelas atas untuk performa gaming 4K terbaik dan AI
 --WebAppBoundary
-Content-Disposition: form-data; name="manfaat"
+Content-Disposition: form-data; name="harga"
 
-Membantu detoksifikasi dan menjaga kesehatan mata
+30000000
 --WebAppBoundary
-Content-Disposition: form-data; name="efekSamping"
+Content-Disposition: form-data; name="pengaruh"
 
-Dapat menyebabkan kembung
+Meningkatkan FPS secara drastis pada resolusi tinggi
 --WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Disposition: form-data; name="file"; filename="me.png"
 Content-Type: image/png
 
 < ./example.png
 --WebAppBoundary--
 
 > {%
-    client.global.set("plantId", response.body.data.plantId);
-    console.log(client.global.get("plantId"))
+    client.global.set("plantIdpc", response.body.data.plantId);
+    console.log("ID PC Baru: " + client.global.get("plantIdpc"))
 %}
 
-### Mengambil data komponen berdasarkan id-nya
-# @name getPlantByIdpc
-GET {{BaseUrl}}/plants/{{plantId}}
+### Mengambil data komponen PC berdasarkan id-nya
+# @name getPlantpcById
+GET {{BaseUrl}}/plantspc/{{plantIdpc}}
 Content-Type: application/json
 
-### Melihat gambar komponen
-# @name getPlantImagepcById
-GET {{BaseUrl}}/plants/{{plantId}}/image
-Content-Type: application/json
-
-### Mengubah hanya data plant berdasarkan id-nya
-# @name PutPlantOnlyData
-PUT {{BaseUrl}}/plants/{{plantId}}
+### Mengubah hanya data PC (tanpa gambar baru)
+# @name PutPlantpcOnlyData
+PUT {{BaseUrl}}/plantspc/{{plantIdpc}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
 Content-Disposition: form-data; name="nama"
 
-Brokoli Update
+NVIDIA RTX 4090 Super
 --WebAppBoundary
 Content-Disposition: form-data; name="deskripsi"
 
-Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+Update: Versi Super dengan clock speed lebih tinggi
 --WebAppBoundary
 Content-Disposition: form-data; name="harga"
 
-Membantu detoksifikasi dan menjaga kesehatan mata
+32000000
 --WebAppBoundary
 Content-Disposition: form-data; name="pengaruh"
 
-Dapat menyebabkan kembung
+Performa lebih stabil dan suhu lebih terjaga
 --WebAppBoundary--
 
-### Mengubah gambar dan data plant berdasarkan id-nya
-# @name PutPlant
-PUT {{BaseUrl}}/plants/{{plantId}}
+### Mengubah gambar dan data PC
+# @name PutPlantpcWithImage
+PUT {{BaseUrl}}/plantspc/{{plantIdpc}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
 Content-Disposition: form-data; name="nama"
 
-Brokoli
+NVIDIA RTX 4090 Pro
 --WebAppBoundary
 Content-Disposition: form-data; name="deskripsi"
 
-Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+Deskripsi diperbarui beserta gambar produk terbaru
 --WebAppBoundary
-Content-Disposition: form-data; name="manfaat"
+Content-Disposition: form-data; name="harga"
 
-Membantu detoksifikasi dan menjaga kesehatan mata
+35000000
 --WebAppBoundary
-Content-Disposition: form-data; name="efekSamping"
+Content-Disposition: form-data; name="pengaruh"
 
-Dapat menyebabkan kembung
+Optimal untuk workstation
 --WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Disposition: form-data; name="file"; filename="gpu_updated.png"
 Content-Type: image/png
 
 < ./example.png
 --WebAppBoundary--
 
-### Menghapus data plant berdasarkan id-nya
+### Menghapus data PC berdasarkan id-nya
 # @name deletePlantpc
-DELETE {{BaseUrl}}/plants/{{plantId}}
+DELETE {{BaseUrl}}/plantspc/{{plantIdpc}}
 Content-Type: application/json
