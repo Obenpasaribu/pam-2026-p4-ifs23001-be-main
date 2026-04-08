@@ -45,45 +45,59 @@ class PlantpcService(private val plantpcRepository: IPlantpcRepository) {
         call.respond(response)
     }
 
-    // Ambil data request
+    // Ambil data request dengan penanganan streaming yang efisien dan error handling file
     private suspend fun getPlantRequestpc(call: ApplicationCall): PlantpcRequest {
-        // Buat object penampung
         val plantReq = PlantpcRequest()
+        val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 10) // Naikkan limit ke 10MB jika perlu
 
-        val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 5)
-        multipartData.forEachPart { part ->
-            when (part) {
-                // Ambil request berupa teks
-                is PartData.FormItem -> {
-                    when (part.name) {
-                        "nama" -> plantReq.nama = part.value.trim()
-                        "deskripsi" -> plantReq.deskripsi = part.value
-                        "harga" -> plantReq.harga = part.value
-                        "pengaruh" -> plantReq.pengaruh = part.value
+        try {
+            multipartData.forEachPart { part ->
+                when (part) {
+                    is PartData.FormItem -> {
+                        when (part.name) {
+                            "nama" -> plantReq.nama = part.value.trim()
+                            "deskripsi" -> plantReq.deskripsi = part.value
+                            "harga" -> plantReq.harga = part.value
+                            "pengaruh" -> plantReq.pengaruh = part.value
+                        }
                     }
+
+                    is PartData.FileItem -> {
+                        // Hanya proses jika file ada namanya (tidak kosong)
+                        if (part.originalFileName?.isNotEmpty() == true) {
+                            val ext = part.originalFileName
+                                ?.substringAfterLast('.', "")
+                                ?.let { if (it.isNotEmpty()) ".$it" else "" }
+                                ?: ""
+
+                            val fileName = UUID.randomUUID().toString() + ext
+                            val filePath = "uploads/plants/$fileName"
+
+                            val file = File(filePath)
+                            file.parentFile.mkdirs()
+
+                            try {
+                                // Point 1: Streaming Efisien
+                                part.provider().copyAndClose(file.writeChannel())
+                                plantReq.pathGambar = filePath
+                            } catch (e: Exception) {
+                                // Point 4: Hapus file jika gagal di tengah jalan (koneksi terputus)
+                                if (file.exists()) file.delete()
+                                throw e
+                            }
+                        }
+                    }
+                    else -> part.dispose()
                 }
-
-                // Upload file
-                is PartData.FileItem -> {
-                    val ext = part.originalFileName
-                        ?.substringAfterLast('.', "")
-                        ?.let { if (it.isNotEmpty()) ".$it" else "" }
-                        ?: ""
-
-                    val fileName = UUID.randomUUID().toString() + ext
-                    val filePath = "uploads/plants/$fileName"
-
-                    val file = File(filePath)
-                    file.parentFile.mkdirs() // pastikan folder ada
-
-                    part.provider().copyAndClose(file.writeChannel())
-                    plantReq.pathGambar = filePath
-                }
-
-                else -> {}
+                part.dispose()
             }
-
-            part.dispose()
+        } catch (e: Exception) {
+            // Hapus file yang mungkin baru saja terbuat jika terjadi error selama proses multipart
+            if (plantReq.pathGambar.isNotEmpty()) {
+                val file = File(plantReq.pathGambar)
+                if (file.exists()) file.delete()
+            }
+            throw e
         }
 
         return plantReq
@@ -99,22 +113,19 @@ class PlantpcService(private val plantpcRepository: IPlantpcRepository) {
         validatorHelper.required("pathGambar", "Gambar tidak boleh kosong")
         validatorHelper.validate()
 
+        // Validasi fisik file
         val file = File(plantReq.pathGambar)
-        if (!file.exists()) {
-            throw AppException(400, "Gambar komponen gagal diupload!")
+        if (!file.exists() || file.length() == 0L) {
+            throw AppException(400, "Gambar komponen gagal diupload atau kosong!")
         }
-
     }
 
     // Menambahkan data komponen
     suspend fun createPlantpc(call: ApplicationCall) {
-        // Ambil data request
         val plantpcReq = getPlantRequestpc(call)
 
-        // Validasi request
         validatePlantRequestpc(plantpcReq)
 
-        // periksa plant dengan nama yang sama
         val existPlant = plantpcRepository.getPlantByNamepc(plantpcReq.nama)
         if(existPlant != null){
             val tmpFile = File(plantpcReq.pathGambar)
@@ -128,12 +139,12 @@ class PlantpcService(private val plantpcRepository: IPlantpcRepository) {
             plantpcReq.toEntitypc()
         )
 
-        val response = DataResponse(
+        // Point 3: Response Cepat
+        call.respond(DataResponse(
             "success",
             "Berhasil menambahkan data komponen",
             mapOf(Pair("plantId", plantId))
-        )
-        call.respond(response)
+        ))
     }
 
     // Mengubah data komponen
@@ -143,30 +154,30 @@ class PlantpcService(private val plantpcRepository: IPlantpcRepository) {
 
         val oldPlant = plantpcRepository.getPlantByIdpc(id) ?: throw AppException(404, "Data komponen tidak tersedia!")
 
-        // Ambil data request
         val plantpcReq = getPlantRequestpc(call)
 
-        if(plantpcReq.pathGambar.isEmpty()){
+        // Point 2: Pertahankan path lama jika tidak ada upload baru
+        val isNewImageUploaded = plantpcReq.pathGambar.isNotEmpty()
+        if(!isNewImageUploaded){
             plantpcReq.pathGambar = oldPlant.pathGambar
         }
 
-        // Validasi request
         validatePlantRequestpc(plantpcReq)
 
-        // periksa plant dengan nama yang sama jika nama diubah
         if(plantpcReq.nama != oldPlant.nama){
             val existPlant = plantpcRepository.getPlantByNamepc(plantpcReq.nama)
             if(existPlant != null){
-                val tmpFile = File(plantpcReq.pathGambar)
-                if(tmpFile.exists()){
-                    tmpFile.delete()
+                // Hapus file baru jika validasi nama gagal
+                if(isNewImageUploaded){
+                    val tmpFile = File(plantpcReq.pathGambar)
+                    if(tmpFile.exists()) tmpFile.delete()
                 }
                 throw AppException(409, "komponen dengan nama ini sudah terdaftar!")
             }
         }
 
-        // Hapus gambar lama jika mengupload file baru
-        if(plantpcReq.pathGambar != oldPlant.pathGambar){
+        // Hapus gambar lama HANYA jika ada gambar baru yang masuk
+        if(isNewImageUploaded && plantpcReq.pathGambar != oldPlant.pathGambar){
             val oldFile = File(oldPlant.pathGambar)
             if(oldFile.exists()){
                 oldFile.delete()
@@ -176,16 +187,17 @@ class PlantpcService(private val plantpcRepository: IPlantpcRepository) {
         val isUpdated = plantpcRepository.updatePlantpc(
             id, plantpcReq.toEntitypc()
         )
+
         if (!isUpdated) {
             throw AppException(400, "Gagal memperbarui data komponen!")
         }
 
-        val response = DataResponse(
+        // Point 3: Response Cepat
+        call.respond(DataResponse(
             "success",
             "Berhasil mengubah data komponen",
             null
-        )
-        call.respond(response)
+        ))
     }
 
     // Menghapus data komponen
@@ -202,17 +214,15 @@ class PlantpcService(private val plantpcRepository: IPlantpcRepository) {
             throw AppException(400, "Gagal menghapus data komponen!")
         }
 
-        // Hapus data gambar jika data komponen sudah dihapus
         if (oldFile.exists()) {
             oldFile.delete()
         }
 
-        val response = DataResponse(
+        call.respond(DataResponse(
             "success",
             "Berhasil menghapus data komponen",
             null
-        )
-        call.respond(response)
+        ))
     }
 
     // Mengambil gambar komponen
