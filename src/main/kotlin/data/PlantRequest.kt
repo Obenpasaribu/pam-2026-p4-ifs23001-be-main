@@ -15,8 +15,8 @@ data class PlantRequest(
         return mapOf(
             "nama" to nama,
             "deskripsi" to deskripsi,
-            "manfaat" to manfaat,
-            "efek samping" to efekSamping,
+            "harga" to manfaat,       // Sesuaikan dengan key validator di Service
+            "pengaruh" to efekSamping, // Sesuaikan dengan key validator di Service
             "pathGambar" to pathGambar
         )
     }
@@ -30,7 +30,4 @@ data class PlantRequest(
             pathGambar =  pathGambar,
         )
     }
-
-
-
 }
